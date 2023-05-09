@@ -2,12 +2,19 @@ using UnityEngine;
 using UnityEngine.Audio;
 using UnityEngine.SceneManagement;
 
+[DefaultExecutionOrder(-1)]
 public class GameManager : MonoBehaviour
 {
     [SerializeField] GameOverScreen gameOverScreen;
     [SerializeField] AudioMixer mixer;
 
     (bool,float) isMutedSFX, isMutedMusic;
+
+    void Start()
+    {
+        Application.targetFrameRate = 120;
+    }
+
     public void Pause(bool value)
     {
         if (value)

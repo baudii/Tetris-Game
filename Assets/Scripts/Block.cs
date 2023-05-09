@@ -5,27 +5,27 @@ using System;
 
 public class Block : MonoBehaviour
 {
-    [SerializeField] AudioSource audioSrc;
     [SerializeField] Vector2 perfectCenterOffset;
     [SerializeField] protected Vector2 rotationPivot;
-    [SerializeField] AudioClipStorageSO audioClips;
 
     public UnityAction<Transform> OnBlockHitGround;
     BlockSpawner spawner;
     protected GhostBlock ghost;
 
-    public float fallSpeed = 1;
-    float fallSpeedMemo = 0;
     public Color blockColor;
     float maxDelta = 0.4f;
     float delta = 0.4f;
 
+    float normalFallDelta = 1;
+    float fastFallDelta = 0.017f;
+    float fallDelta;
+
     public void Init(BlockSpawner spawner, float fallSpeed)
     {
         this.spawner = spawner;
-        this.fallSpeed = fallSpeed;
+        normalFallDelta = fallSpeed;
+        fallDelta = normalFallDelta;
         blockColor = transform.GetChild(0).GetChild(0).GetComponent<SpriteRenderer>().color;
-        fallSpeedMemo = fallSpeed;
         ghost = Instantiate(transform.GetChild(0)).gameObject.AddComponent<GhostBlock>();
         ghost.Init(spawner, this);
         ghost.UpdatePosition();
@@ -55,15 +55,14 @@ public class Block : MonoBehaviour
 
     public void FastFall()
     {
-        fallSpeedMemo = fallSpeed;
-        fallSpeed = Mathf.Min(fallSpeed, 0.017f);
+        fallDelta = Mathf.Min(normalFallDelta, fastFallDelta);
         StopAllCoroutines();
         StartCoroutine(Fall());
     }
 
     public void StopFastFall()
     {
-        fallSpeed = fallSpeedMemo;
+        fallDelta = normalFallDelta;
     }
 
     public void ResetMovementValues()
@@ -78,19 +77,24 @@ public class Block : MonoBehaviour
         delta += Time.deltaTime;
         if (delta < maxDelta) return;
         delta = 0;
-        maxDelta = Mathf.Max(0.07f, maxDelta -= 0.2f);
+        maxDelta = Mathf.Max(0.03f, maxDelta -= 0.3f);
 
         Move(dir);
     }
 
     IEnumerator Fall()
     {
+        float delta = fallDelta;
         while (true)
         {
-            yield return new WaitForSeconds(fallSpeed);
+            delta += Time.deltaTime;
+            yield return null;
+            if (delta < fallDelta)
+                continue;
             if (!IsValidMove(Vector3.down))
                 break;
 
+            delta = 0;
             Move(Vector3.down);
 
         }

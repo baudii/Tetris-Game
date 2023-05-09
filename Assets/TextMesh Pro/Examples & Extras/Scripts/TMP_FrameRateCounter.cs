@@ -40,7 +40,7 @@ namespace TMPro.Examples
 
 
             m_frameCounter_transform = frameCounter.transform;
-            m_frameCounter_transform.SetParent(m_camera.transform);
+            m_frameCounter_transform.SetParent(transform);
             m_frameCounter_transform.localRotation = Quaternion.identity;
 
             m_TextMeshPro.enableWordWrapping = false;
