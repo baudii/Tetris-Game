@@ -3,10 +3,10 @@ using System.Collections;
 
 public class AudioCrossFade : MonoBehaviour
 {
-    [SerializeField] AudioSource[] audioSources;
+    [SerializeField] AudioSourceInfo[] audioSources;
     [SerializeField] float transitionSpeed;
     int i = 0;
-    AudioSource currentSource;
+    AudioSourceInfo currentSource;
     public static AudioCrossFade Instance;
 
     void Awake()
@@ -22,7 +22,8 @@ public class AudioCrossFade : MonoBehaviour
             DontDestroyOnLoad(this);
 
             currentSource = audioSources[0];
-            currentSource.Play();
+            currentSource.src.volume = currentSource.maxVolume;
+            currentSource.src.Play();
         }
     }
 
@@ -44,16 +45,16 @@ public class AudioCrossFade : MonoBehaviour
         StartCoroutine(SwitchSourceTo(audioSources[i]));
     }
 
-    IEnumerator SwitchSourceTo(AudioSource newSource)
+    IEnumerator SwitchSourceTo(AudioSourceInfo newSource)
     {
         float t = 0;
         yield return null;
-        newSource.Play();
+        newSource.src.Play();
 
         while (true)
         {
-            currentSource.volume = Mathf.Lerp(1, 0, t);
-            newSource.volume = Mathf.Lerp(0, 1, t);
+            currentSource.src.volume = Mathf.Lerp(currentSource.maxVolume, 0, t);
+            newSource.src.volume = Mathf.Lerp(0, newSource.maxVolume, t);
 
             if (t >= 1)
                 break;
@@ -61,8 +62,14 @@ public class AudioCrossFade : MonoBehaviour
             t += Time.deltaTime * transitionSpeed;
             yield return null;
         }
-        currentSource.Stop();
+        currentSource.src.Stop();
         currentSource = newSource;
     }
 
+    [System.Serializable]
+    class AudioSourceInfo
+    {
+        public AudioSource src;
+        [Range(0,1f)] public float maxVolume;
+    }
 }

@@ -45,12 +45,12 @@ public class GameManager : MonoBehaviour
 
     public void SetMusicVolume(float value)
     {
-        mixer.SetFloat("musicVol", -Mathf.Pow(value, 2));
+        mixer.SetFloat("musicVol", Mathf.Log10(value) * 20);
     }
 
     public void SetSFXVolume(float value)
     {
-        mixer.SetFloat("SFXVol", -Mathf.Pow(value, 2));
+        mixer.SetFloat("SFXVol", Mathf.Log10(value) * 20);
     }
 
     public void Mute(string name)

@@ -53,10 +53,10 @@ public class BlockSpawner : MonoBehaviour
     {
         if (currentBlock == null)
         {
-            fastFall = false;
-            rotationInput = false;
-            stopFastFall = false;
-            releasedArrow = false;
+            if (stopFastFall)
+            {
+                stopFastFall = false;
+            }
             return;
         }
 
@@ -79,22 +79,26 @@ public class BlockSpawner : MonoBehaviour
         if (stopFastFall)
         {
             currentBlock.StopFastFall();
+            stopFastFall = false;
         }
         if (fastFall)
         {
             currentBlock.FastFall();
         }
 
-        fastFall = false;
         rotationInput = false;
-        stopFastFall = false;
         releasedArrow = false;
     }
     bool changedDir = false;
 
     public void RecieveRotationInput() => rotationInput = true;
     public void RecieveFastFallInput() => fastFall = true;
-    public void RecieveStopFastFallInput() => stopFastFall = true;
+    public void RecieveStopFastFallInput()
+    {
+        fastFall = false;
+        stopFastFall = true;
+    }
+
     public void RecieveDirInput(string dir)
     {
         if (dir == "right")
@@ -115,9 +119,12 @@ public class BlockSpawner : MonoBehaviour
     public void Spawn()
     {
         currentBlock = Instantiate(nextBlock, transform.position, Quaternion.identity);
-        currentBlock.Init(this, scoringSystem.GetFallSpeed());
+        var fallSpeed = scoringSystem.GetFallSpeed();
+        currentBlock.Init(this, fallSpeed);
 
         currentBlock.OnBlockHitGround += OnBlockLand;
+
+        Invoke("BeginBlockFall", fallSpeed);
 
         i++;
         if (i % shuffledBlocks.Length == 0)
@@ -129,6 +136,11 @@ public class BlockSpawner : MonoBehaviour
         if (nextBlockIcon != null)
             Destroy(nextBlockIcon);
         nextBlockIcon = nextBlock.GetBlockIcon(nextBlockSlot);
+    }
+
+    void BeginBlockFall()
+    {
+        currentBlock.StartFall();
     }
 
     public bool IsOccupied(float x, float y)
@@ -157,7 +169,7 @@ public class BlockSpawner : MonoBehaviour
         var removedLines = ClearLines();
         if (removedLines.Count == 0)
         {
-            Invoke("Spawn", .5f);
+            Spawn();
             return;
         }
         audioSrc.PlayOneShot(lineClearSFX);

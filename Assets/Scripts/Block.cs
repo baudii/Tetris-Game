@@ -19,6 +19,8 @@ public class Block : MonoBehaviour
     float normalFallDelta = 1;
     float fastFallDelta = 0.009f;
 
+    Coroutine falling;
+
     public void Init(BlockSpawner spawner, float fallSpeed)
     {
         this.spawner = spawner;
@@ -27,7 +29,6 @@ public class Block : MonoBehaviour
         ghost = Instantiate(transform.GetChild(0)).gameObject.AddComponent<GhostBlock>();
         ghost.Init(spawner, this);
         ghost.UpdatePosition();
-        StartCoroutine(Fall(fallSpeed));
     }
 /*
     private void InitializeAudioClips()
@@ -40,6 +41,10 @@ public class Block : MonoBehaviour
         }
     }*/
 
+    public void StartFall()
+    {
+        falling = StartCoroutine(Fall(normalFallDelta));
+    }
 
     public GameObject GetBlockIcon(Transform parent)
     {
@@ -50,17 +55,21 @@ public class Block : MonoBehaviour
         }
         return tr.gameObject;
     }
-
+    bool fastFall;
     public void FastFall()
     {
+        if (fastFall || falling == null)
+            return;
+        fastFall = true;
         StopAllCoroutines();
         StartCoroutine(Fall(Mathf.Min(normalFallDelta, fastFallDelta)));
     }
 
     public void StopFastFall()
     {
+        fastFall = false;
         StopAllCoroutines();
-        StartCoroutine(Fall(normalFallDelta));
+        falling = StartCoroutine(Fall(normalFallDelta));
     }
 
     public void ResetMovementValues()
