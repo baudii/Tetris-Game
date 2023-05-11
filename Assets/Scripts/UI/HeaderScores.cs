@@ -1,7 +1,7 @@
 using UnityEngine;
 using TMPro;
 
-public class GameOverScreen : MonoBehaviour
+public class HeaderScores : MonoBehaviour
 {
     [SerializeField] TextMeshProUGUI scoreTextObj;
     [SerializeField] TextMeshProUGUI bestScoreTextObj;

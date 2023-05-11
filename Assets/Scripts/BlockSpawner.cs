@@ -52,33 +52,45 @@ public class BlockSpawner : MonoBehaviour
     void FixedUpdate()
     {
         if (currentBlock == null)
+        {
+            fastFall = false;
+            rotationInput = false;
+            stopFastFall = false;
+            releasedArrow = false;
             return;
+        }
 
-        if (movementDir.magnitude == 0) currentBlock.ResetMovementValues();
+        if (movementDir.magnitude == 0 || changedDir)
+        {
+            changedDir = false;
+            currentBlock.ResetMovementValues();
+        }
         else currentBlock.UpdateMovement(movementDir);
 
         if (releasedArrow)
         {
             movementDir = Vector3.zero;
-            releasedArrow = false;
         }
 
         if (rotationInput)
         {
             currentBlock.Rotate();
-            rotationInput = false;
         }
         if (stopFastFall)
         {
             currentBlock.StopFastFall();
-            stopFastFall = false;
         }
         if (fastFall)
         {
-            fastFall = false;
             currentBlock.FastFall();
         }
+
+        fastFall = false;
+        rotationInput = false;
+        stopFastFall = false;
+        releasedArrow = false;
     }
+    bool changedDir = false;
 
     public void RecieveRotationInput() => rotationInput = true;
     public void RecieveFastFallInput() => fastFall = true;
@@ -87,10 +99,14 @@ public class BlockSpawner : MonoBehaviour
     {
         if (dir == "right")
         {
+            if (movementDir == Vector3.left)
+                changedDir = true;
             movementDir = Vector3.right;
         }
         else if (dir == "left")
         {
+            if (movementDir == Vector3.right)
+                changedDir = true;
             movementDir = Vector3.left;
         }
         else releasedArrow = true;
@@ -150,7 +166,7 @@ public class BlockSpawner : MonoBehaviour
 
         StartCoroutine(AnimateLineClear(removedLines));
     }
-
+#if UNITY_EDITOR
     void PrintGrid()
     {
         for (int i = 0; i < grid.GetLength(0); i++)
@@ -165,6 +181,7 @@ public class BlockSpawner : MonoBehaviour
             print(row);
         }
     }
+#endif
 
     IEnumerator AnimateLineClear(List<int> removedLines)
     {

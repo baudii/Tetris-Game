@@ -14,7 +14,12 @@ public class Toggler : MonoBehaviour
     public void Toggle()
     {
         state = !state;
-        print(gameObject.name + ":" + state);
+        onStateChange?.Invoke(state);
+    }
+
+    public void SetState(bool state)
+    {
+        this.state = state;
         onStateChange?.Invoke(state);
     }
 }

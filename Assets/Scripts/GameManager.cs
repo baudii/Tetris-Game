@@ -5,7 +5,7 @@ using UnityEngine.SceneManagement;
 [DefaultExecutionOrder(-1)]
 public class GameManager : MonoBehaviour
 {
-    [SerializeField] GameOverScreen gameOverScreen;
+    [SerializeField] InGameMenu inGameMenu;
     [SerializeField] AudioMixer mixer;
 
     (bool,float) isMutedSFX, isMutedMusic;
@@ -39,8 +39,8 @@ public class GameManager : MonoBehaviour
     public void ShowGameOver(int score)
     {
         Pause(true);
-        gameOverScreen.gameObject.SetActive(true);
-        gameOverScreen.SetScores(score);
+        inGameMenu.gameObject.SetActive(true);
+        inGameMenu.OnGameOver(score);
     }
 
     public void SetMusicVolume(float value)

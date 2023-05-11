@@ -50,7 +50,7 @@ public class ScoringSystem : MonoBehaviour
 
     void SetTextBoxes()
     {
-        levelText.text = "LEVEL:\n" + level;
+        levelText.text = level.ToString();
         scoreText.text = score.ToString("#,##0");
     }
 

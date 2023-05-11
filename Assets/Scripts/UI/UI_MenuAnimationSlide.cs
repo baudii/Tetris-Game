@@ -5,13 +5,13 @@ public class UI_MenuAnimationSlide : MonoBehaviour
 {
     [SerializeField] float slideSpeed;
     [SerializeField] RectTransform rt;
-    void OnEnable()
+    public void Slide()
     {
         rt.anchoredPosition = new Vector2(Screen.width, rt.anchoredPosition.y);
-        StartCoroutine(Slide());
+        StartCoroutine(Interpolate());
     }
 
-    IEnumerator Slide()
+    IEnumerator Interpolate()
     {
         float t = 0;
         float start = rt.anchoredPosition.x;

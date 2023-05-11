@@ -20,6 +20,9 @@ TextureImporter:
   - first:
       213: 7808342501641814534
     second: Block_colors_5
+  - first:
+      213: -7189032229714309631
+    second: Block_colors_6
   externalObjects: {}
   serializedVersion: 11
   mipmaps:
@@ -242,6 +245,27 @@ TextureImporter:
       bones: []
       spriteID: 60202f6822ecc5c60800000000000000
       internalID: 7808342501641814534
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Block_colors_6
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 0
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 10e4b05b64d6b3c90800000000000000
+      internalID: -7189032229714309631
       vertices: []
       indices: 
       edges: []

@@ -3,6 +3,7 @@ using System.Collections;
 
 public class LineClear : MonoBehaviour
 {
+    [SerializeField] TrailRenderer tr;
     [SerializeField] float speed;
     public void Init(int dir)
     {
