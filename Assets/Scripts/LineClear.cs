@@ -3,6 +3,7 @@ using System.Collections;
 
 public class LineClear : MonoBehaviour
 {
+    [SerializeField] float speed;
     public void Init(int dir)
     {
         StartCoroutine(Interpolate(dir));
@@ -20,9 +21,9 @@ public class LineClear : MonoBehaviour
             yield return null;
             if (t >= 1)
                 break;
-            t += Time.deltaTime * 12;
+            t += Time.deltaTime * speed;
         }
-        yield return new WaitForSeconds(1);
+        yield return new WaitForSeconds(1.5f);
         Destroy(gameObject);
     }
 }

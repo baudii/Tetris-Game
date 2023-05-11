@@ -10,8 +10,7 @@ public class ScoringSystem : MonoBehaviour
 
     void Awake()
     {
-        levelText.text = "LEVEL:\n" + level;
-        scoreText.text = "SCORE:\n" + score;
+        SetTextBoxes();
     }
 
     public void OnClearLines(int linesCleared)
@@ -20,8 +19,7 @@ public class ScoringSystem : MonoBehaviour
             return;
 
         SetScore(linesCleared);
-        levelText.text = "LEVEL:\n" + level;
-        scoreText.text = "SCORE:\n" + score;
+        SetTextBoxes();
     }
 
     void SetScore(int linesCleared)
@@ -48,6 +46,12 @@ public class ScoringSystem : MonoBehaviour
             LevelUp();
             totalLines = 0;
         }
+    }
+
+    void SetTextBoxes()
+    {
+        levelText.text = "LEVEL:\n" + level;
+        scoreText.text = score.ToString("#,##0");
     }
 
     void LevelUp()

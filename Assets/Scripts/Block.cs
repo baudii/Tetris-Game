@@ -17,19 +17,17 @@ public class Block : MonoBehaviour
     float delta = 0.4f;
 
     float normalFallDelta = 1;
-    float fastFallDelta = 0.017f;
-    float fallDelta;
+    float fastFallDelta = 0.009f;
 
     public void Init(BlockSpawner spawner, float fallSpeed)
     {
         this.spawner = spawner;
         normalFallDelta = fallSpeed;
-        fallDelta = normalFallDelta;
         blockColor = transform.GetChild(0).GetChild(0).GetComponent<SpriteRenderer>().color;
         ghost = Instantiate(transform.GetChild(0)).gameObject.AddComponent<GhostBlock>();
         ghost.Init(spawner, this);
         ghost.UpdatePosition();
-        StartCoroutine(Fall());
+        StartCoroutine(Fall(fallSpeed));
     }
 /*
     private void InitializeAudioClips()
@@ -55,14 +53,14 @@ public class Block : MonoBehaviour
 
     public void FastFall()
     {
-        fallDelta = Mathf.Min(normalFallDelta, fastFallDelta);
         StopAllCoroutines();
-        StartCoroutine(Fall());
+        StartCoroutine(Fall(Mathf.Min(normalFallDelta, fastFallDelta)));
     }
 
     public void StopFastFall()
     {
-        fallDelta = normalFallDelta;
+        StopAllCoroutines();
+        StartCoroutine(Fall(normalFallDelta));
     }
 
     public void ResetMovementValues()
@@ -82,21 +80,20 @@ public class Block : MonoBehaviour
         Move(dir);
     }
 
-    IEnumerator Fall()
+    IEnumerator Fall(float delay)
     {
-        float delta = fallDelta;
+        float delta = 0;
         while (true)
         {
             delta += Time.deltaTime;
             yield return null;
-            if (delta < fallDelta)
+            if (delta < delay)
                 continue;
             if (!IsValidMove(Vector3.down))
                 break;
 
-            delta = 0;
+            delta = delta - delay;
             Move(Vector3.down);
-
         }
         OnBlockHitGround.Invoke(transform.GetChild(0));
         OnBlockHitGround = null;

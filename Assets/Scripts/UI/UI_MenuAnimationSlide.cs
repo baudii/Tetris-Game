@@ -3,6 +3,7 @@ using System.Collections;
 
 public class UI_MenuAnimationSlide : MonoBehaviour
 {
+    [SerializeField] float slideSpeed;
     [SerializeField] RectTransform rt;
     void OnEnable()
     {
@@ -27,7 +28,7 @@ public class UI_MenuAnimationSlide : MonoBehaviour
                 t = 0;
                 i++;
             }
-            t += Time.unscaledDeltaTime * 10;
+            t += Time.unscaledDeltaTime * slideSpeed;
         }
     }
 }

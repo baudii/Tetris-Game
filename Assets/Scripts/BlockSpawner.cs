@@ -141,7 +141,7 @@ public class BlockSpawner : MonoBehaviour
         var removedLines = ClearLines();
         if (removedLines.Count == 0)
         {
-            Spawn();
+            Invoke("Spawn", .5f);
             return;
         }
         audioSrc.PlayOneShot(lineClearSFX);
@@ -177,7 +177,7 @@ public class BlockSpawner : MonoBehaviour
         }
 
         float t = 0;
-        yield return new WaitForSeconds(0.3f);
+        yield return new WaitForSeconds(.4f);
         while (true)
         {
             foreach (var offset in offsets)
