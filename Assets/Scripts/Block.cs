@@ -17,7 +17,7 @@ public class Block : MonoBehaviour
     float delta = 0.4f;
 
     float normalFallDelta = 1;
-    float fastFallDelta = 0.009f;
+    float fastFallDelta = 0.017f;
 
     Coroutine falling;
 
@@ -43,6 +43,8 @@ public class Block : MonoBehaviour
 
     public void StartFall()
     {
+        if (falling != null)
+            StopCoroutine(falling);
         falling = StartCoroutine(Fall(normalFallDelta));
     }
 
@@ -62,6 +64,7 @@ public class Block : MonoBehaviour
             return;
         fastFall = true;
         StopAllCoroutines();
+        falling = null;
         StartCoroutine(Fall(Mathf.Min(normalFallDelta, fastFallDelta)));
     }
 
@@ -106,6 +109,7 @@ public class Block : MonoBehaviour
         }
         OnBlockHitGround.Invoke(transform.GetChild(0));
         OnBlockHitGround = null;
+        StopAllCoroutines();
         Destroy(this);
     }
 

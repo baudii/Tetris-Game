@@ -46,7 +46,12 @@ public class BlockSpawner : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Space)) rotationInput = true;
         if (Input.GetKeyDown(KeyCode.DownArrow)) fastFall = true;
-        if (Input.GetKeyUp(KeyCode.DownArrow)) stopFastFall = true;
+        if (Input.GetKeyUp(KeyCode.DownArrow))
+        {
+            fastFall = false;
+            stopFastFall = true;
+        }
+
     }
 
     void FixedUpdate()
@@ -124,7 +129,7 @@ public class BlockSpawner : MonoBehaviour
 
         currentBlock.OnBlockHitGround += OnBlockLand;
 
-        Invoke("BeginBlockFall", fallSpeed);
+        Invoke(nameof(BeginBlockFall), fallSpeed);
 
         i++;
         if (i % shuffledBlocks.Length == 0)
@@ -152,6 +157,7 @@ public class BlockSpawner : MonoBehaviour
 
     void OnBlockLand(Transform block)
     {
+        CancelInvoke();
         audioSrc.PlayOneShot(fallSFX);
         currentBlock = null;
         while (block.childCount > 0) {
