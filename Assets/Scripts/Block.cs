@@ -81,7 +81,7 @@ public class Block : MonoBehaviour
             if (!IsValidMove(Vector3.down))
                 break;
 
-            delta = delta - delay;
+            delta = Mathf.Max(delta - delay, 0);
             Move(Vector3.down);
         }
         OnBlockHitGround.Invoke(transform.GetChild(0));

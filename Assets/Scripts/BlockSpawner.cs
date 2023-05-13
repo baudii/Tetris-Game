@@ -38,7 +38,7 @@ public class BlockSpawner : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKey(KeyCode.LeftArrow))
+/*        if (Input.GetKey(KeyCode.LeftArrow))
             RecieveDirInput(-1f);
         if (Input.GetKey(KeyCode.RightArrow))
             RecieveDirInput(1f);
@@ -47,7 +47,7 @@ public class BlockSpawner : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Space)) RecieveRotationInput();
         if (Input.GetKeyDown(KeyCode.DownArrow)) FastFall(true);
-        if (Input.GetKeyUp(KeyCode.DownArrow)) FastFall(false);
+        if (Input.GetKeyUp(KeyCode.DownArrow)) FastFall(false);*/
     }
 
     void FixedUpdate()

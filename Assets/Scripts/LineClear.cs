@@ -5,6 +5,9 @@ public class LineClear : MonoBehaviour
 {
     [SerializeField] TrailRenderer tr;
     [SerializeField] float speed;
+
+    [ContextMenu("Test")]
+    public void Test() => Init(1);
     public void Init(int dir)
     {
         StartCoroutine(Interpolate(dir));
