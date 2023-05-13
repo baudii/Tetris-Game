@@ -8,6 +8,7 @@ public class AudioCrossFade : MonoBehaviour
     int i = 0;
     AudioSourceInfo currentSource;
     public static AudioCrossFade Instance;
+    bool toBreak;
 
     void Awake()
     {
@@ -33,6 +34,7 @@ public class AudioCrossFade : MonoBehaviour
             return;
 
         i = index;
+        toBreak = true;
         StartCoroutine(SwitchSourceTo(audioSources[index]));
     }
 
@@ -42,6 +44,7 @@ public class AudioCrossFade : MonoBehaviour
         if (i >= audioSources.Length - 1)
             return;
         i++;
+        toBreak = true;
         StartCoroutine(SwitchSourceTo(audioSources[i]));
     }
 
@@ -49,19 +52,23 @@ public class AudioCrossFade : MonoBehaviour
     {
         float t = 0;
         yield return null;
+        float currentLerpStart = currentSource.src.volume;
+        toBreak = false;
         newSource.src.Play();
+        newSource.src.volume = 0;
 
         while (true)
         {
-            currentSource.src.volume = Mathf.Lerp(currentSource.maxVolume, 0, t);
+            currentSource.src.volume = Mathf.Lerp(currentLerpStart, 0, t);
             newSource.src.volume = Mathf.Lerp(0, newSource.maxVolume, t);
 
-            if (t >= 1)
+            if (t >= 1 || toBreak)
                 break;
 
             t += Time.deltaTime * transitionSpeed;
             yield return null;
         }
+        toBreak = false;
         currentSource.src.Stop();
         currentSource = newSource;
     }

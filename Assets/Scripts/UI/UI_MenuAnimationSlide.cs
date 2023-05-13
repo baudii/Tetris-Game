@@ -5,6 +5,12 @@ public class UI_MenuAnimationSlide : MonoBehaviour
 {
     [SerializeField] float slideSpeed;
     [SerializeField] RectTransform rt;
+
+    float initialX;
+    void Awake()
+    {
+        initialX = rt.anchoredPosition.x;
+    }
     public void Slide()
     {
         rt.anchoredPosition = new Vector2(Screen.width, rt.anchoredPosition.y);
@@ -15,7 +21,7 @@ public class UI_MenuAnimationSlide : MonoBehaviour
     {
         float t = 0;
         float start = rt.anchoredPosition.x;
-        float[] goals = {-100, 50, 0};
+        float[] goals = { initialX - 100, initialX + 50, initialX };
         int i = 0;
 
         while (i < goals.Length)

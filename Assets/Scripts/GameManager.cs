@@ -1,17 +1,15 @@
 using UnityEngine;
-using UnityEngine.Audio;
 using UnityEngine.SceneManagement;
 
 [DefaultExecutionOrder(-1)]
 public class GameManager : MonoBehaviour
 {
     [SerializeField] InGameMenu inGameMenu;
-    [SerializeField] AudioMixer mixer;
-
-    (bool,float) isMutedSFX, isMutedMusic;
+    [SerializeField] Options options;
 
     void Start()
     {
+        options.Init();
         Application.targetFrameRate = 60;
     }
 
@@ -27,12 +25,13 @@ public class GameManager : MonoBehaviour
     {
         Pause(false);
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-        AudioCrossFade.Instance.SetExactSourse(0);
+        AudioCrossFade.Instance.SetExactSourse(1);
     }
 
     public void ToMenu()
     {
         Pause(false);
+        AudioCrossFade.Instance.SetExactSourse(0);
         SceneManager.LoadScene(0);
     }
 
@@ -43,40 +42,9 @@ public class GameManager : MonoBehaviour
         inGameMenu.OnGameOver(score);
     }
 
-    public void SetMusicVolume(float value)
+    public void Play(int scene)
     {
-        mixer.SetFloat("musicVol", Mathf.Log10(value) * 20);
-    }
-
-    public void SetSFXVolume(float value)
-    {
-        mixer.SetFloat("SFXVol", Mathf.Log10(value) * 20);
-    }
-
-    public void Mute(string name)
-    {
-        if (name != "SFXVol" && name != "musicVol")
-            return;
-
-        ref var isMuted = ref IsMuted(name);
-
-        if (isMuted.Item1)
-        {
-            mixer.SetFloat(name, isMuted.Item2);
-            isMuted = (!isMuted.Item1, 0);
-        }
-        else
-        {
-            mixer.GetFloat(name, out var val);
-            isMuted = (!isMuted.Item1, val);
-            mixer.SetFloat(name, -80);
-        }
-    }
-
-    ref (bool,float) IsMuted(string name)
-    {
-        if (name == "SFXVol")
-            return ref isMutedSFX;
-        return ref isMutedMusic;
+        AudioCrossFade.Instance.SetExactSourse(1);
+        SceneManager.LoadScene(scene);
     }
 }

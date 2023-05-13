@@ -4,6 +4,7 @@ using UnityEngine.Events;
 public class Toggler : MonoBehaviour
 {
     [SerializeField] UnityEvent<bool> onStateChange;
+    [SerializeField] UnityEvent onStateTrue, onStateFalse;
     [SerializeField] bool initialState;
     bool state;
 
@@ -13,13 +14,16 @@ public class Toggler : MonoBehaviour
     }
     public void Toggle()
     {
-        state = !state;
-        onStateChange?.Invoke(state);
+        SetState(!state);
     }
 
     public void SetState(bool state)
     {
         this.state = state;
         onStateChange?.Invoke(state);
+        if (state)
+            onStateTrue?.Invoke();
+        else
+            onStateFalse?.Invoke();
     }
 }

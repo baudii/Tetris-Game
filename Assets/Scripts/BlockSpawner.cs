@@ -5,11 +5,11 @@ using EZCameraShake;
 
 public class BlockSpawner : MonoBehaviour
 {
-    [SerializeField] bool touchInput;
     [SerializeField] Block[] tetrisBlocks;
     [SerializeField] ScoringSystem scoringSystem;
     [SerializeField] Transform nextBlockSlot;
     [SerializeField] LineClear lineClearPrefab;
+    [SerializeField] GameObject plainBlockPrefab;
     [Header("Audio")]
     [SerializeField] AudioSource audioSrc;
     [SerializeField] AudioClip lineClearSFX, fallSFX;
@@ -23,11 +23,10 @@ public class BlockSpawner : MonoBehaviour
     int i = 0;
     GameManager gm;
 
-    [HideInInspector]
-    public Vector3 movementDir;
-    bool releasedArrow;
-    [HideInInspector]
-    public bool rotationInput, fastFall, stopFastFall;
+    Vector3 movementDir;
+
+    float fastFallSpeed = 0.017f;
+    float normalFallSpeed = 1;
 
     void Start()
     {
@@ -39,97 +38,63 @@ public class BlockSpawner : MonoBehaviour
 
     void Update()
     {
-        if (currentBlock == null || touchInput)
-            return;
+        if (Input.GetKey(KeyCode.LeftArrow))
+            RecieveDirInput(-1f);
+        if (Input.GetKey(KeyCode.RightArrow))
+            RecieveDirInput(1f);
+        if (!Input.GetKey(KeyCode.RightArrow) && !Input.GetKey(KeyCode.LeftArrow))
+            RecieveDirInput(0);
 
-        movementDir = Vector3.zero.WhereX(Input.GetAxisRaw("Horizontal"));
-
-        if (Input.GetKeyDown(KeyCode.Space)) rotationInput = true;
-        if (Input.GetKeyDown(KeyCode.DownArrow)) fastFall = true;
-        if (Input.GetKeyUp(KeyCode.DownArrow))
-        {
-            fastFall = false;
-            stopFastFall = true;
-        }
-
+        if (Input.GetKeyDown(KeyCode.Space)) RecieveRotationInput();
+        if (Input.GetKeyDown(KeyCode.DownArrow)) FastFall(true);
+        if (Input.GetKeyUp(KeyCode.DownArrow)) FastFall(false);
     }
 
     void FixedUpdate()
     {
-        if (currentBlock == null)
+        currentBlock?.SmoothMovement(movementDir);
+    }
+
+    public void RecieveRotationInput() => currentBlock?.Rotate();
+
+    public void RecieveDirInput(float dir)
+    {
+        movementDir = new Vector3(dir, 0, 0);
+    }
+
+    bool isFastFall;
+    float fastFallDelta;
+    public bool IsFastFall()
+    {
+        if (isFastFall)
         {
-            if (stopFastFall)
+            fastFallDelta += Time.deltaTime;
+            if (fastFallDelta >= fastFallSpeed)
             {
-                stopFastFall = false;
+                fastFallDelta -= fastFallSpeed;
+                return true;
             }
-            return;
+            return false;
         }
 
-        if (movementDir.magnitude == 0 || changedDir)
-        {
-            changedDir = false;
-            currentBlock.ResetMovementValues();
-        }
-        else currentBlock.UpdateMovement(movementDir);
+        fastFallSpeed = Mathf.Min(fastFallSpeed, normalFallSpeed);
+        fastFallDelta = fastFallSpeed;
 
-        if (releasedArrow)
-        {
-            movementDir = Vector3.zero;
-        }
-
-        if (rotationInput)
-        {
-            currentBlock.Rotate();
-        }
-        if (stopFastFall)
-        {
-            currentBlock.StopFastFall();
-            stopFastFall = false;
-        }
-        if (fastFall)
-        {
-            currentBlock.FastFall();
-        }
-
-        rotationInput = false;
-        releasedArrow = false;
+        return false;
     }
-    bool changedDir = false;
-
-    public void RecieveRotationInput() => rotationInput = true;
-    public void RecieveFastFallInput() => fastFall = true;
-    public void RecieveStopFastFallInput()
+    public void FastFall(bool value)
     {
-        fastFall = false;
-        stopFastFall = true;
-    }
-
-    public void RecieveDirInput(string dir)
-    {
-        if (dir == "right")
-        {
-            if (movementDir == Vector3.left)
-                changedDir = true;
-            movementDir = Vector3.right;
-        }
-        else if (dir == "left")
-        {
-            if (movementDir == Vector3.right)
-                changedDir = true;
-            movementDir = Vector3.left;
-        }
-        else releasedArrow = true;
+        isFastFall = value;
     }
 
     public void Spawn()
     {
         currentBlock = Instantiate(nextBlock, transform.position, Quaternion.identity);
-        var fallSpeed = scoringSystem.GetFallSpeed();
-        currentBlock.Init(this, fallSpeed);
-
+        currentBlock.Init(this);
+        normalFallSpeed = scoringSystem.GetFallSpeed();
         currentBlock.OnBlockHitGround += OnBlockLand;
 
-        Invoke(nameof(BeginBlockFall), fallSpeed);
+        Invoke(nameof(BeginBlockFall), .3f);
 
         i++;
         if (i % shuffledBlocks.Length == 0)
@@ -145,7 +110,7 @@ public class BlockSpawner : MonoBehaviour
 
     void BeginBlockFall()
     {
-        currentBlock.StartFall();
+        currentBlock.StartFall(normalFallSpeed);
     }
 
     public bool IsOccupied(float x, float y)
@@ -211,8 +176,43 @@ public class BlockSpawner : MonoBehaviour
             Instantiate(lineClearPrefab, new Vector3(transform.position.x, lineNum + 0.5f, -1f), Quaternion.identity).Init(-1);
         }
 
-        float t = 0;
         yield return new WaitForSeconds(.4f);
+
+        yield return StartCoroutine(SlideItems(offsets));
+        yield return new WaitForSeconds(.4f);
+
+        var greyRows = scoringSystem.GetGreyRowsAmount();
+        if (greyRows > 0)
+            yield return StartCoroutine(SpawnGreyRow(greyRows));
+
+
+        Spawn();
+    }
+
+    IEnumerator SpawnGreyRow(int amount)
+    {
+        var offsets = GetPositiveOffsets(amount);
+
+        yield return StartCoroutine(SlideItems(offsets));
+
+
+        for (int i = 0; i < amount; i++)
+        {
+            int hole = Random.Range(0, grid.GetLength(1));
+            for (int j = 0; j < grid.GetLength(1); j++)
+            {
+                if (j == hole)
+                    continue;
+                var go = Instantiate(plainBlockPrefab, transform);
+                go.transform.position = new Vector3(j + 0.5f, i + 0.5f, 0);
+                grid[i, j] = go.transform;
+            }
+        }
+    }
+
+    IEnumerator SlideItems(List<(Transform, Vector3, Vector3)> offsets)
+    {
+        float t = 0;
         while (true)
         {
             foreach (var offset in offsets)
@@ -224,8 +224,6 @@ public class BlockSpawner : MonoBehaviour
             t += Time.deltaTime * 8;
             yield return null;
         }
-
-        Spawn();
     }
 
     List<int> ClearLines()
@@ -245,6 +243,32 @@ public class BlockSpawner : MonoBehaviour
         return removedLines;
     }
 
+
+    List<(Transform, Vector3, Vector3)> GetPositiveOffsets(int amount)
+    {
+        List<(Transform, Vector3, Vector3)> offsets = new List<(Transform, Vector3, Vector3)>();
+        for (int i = grid.GetLength(0) - 1; i >= 0; i--)
+        {
+            
+            for (int j = 0; j < grid.GetLength(1); j++)
+            {
+                if (grid[i, j] == null)
+                    continue;
+
+                if (i + amount >= grid.GetLength(0))
+                {
+                    gm.ShowGameOver(scoringSystem.GetScore());
+                    return null;
+                }
+
+                var t = grid[i, j];
+                offsets.Add((t, t.position, t.position + (Vector3.up * amount)));
+                grid[i + amount, j] = grid[i, j];
+                grid[i, j] = null;
+            }
+        }
+        return offsets;
+    }
     List<(Transform, Vector3, Vector3)> GetOffsets(List<int> removedLines)
     {
         var lastRowToStack = removedLines[0];
@@ -258,10 +282,10 @@ public class BlockSpawner : MonoBehaviour
             {
                 if (grid[i, j] != null)
                 {
+                    var tr = grid[i, j];
+                    offsets.Add((tr, tr.position, tr.position + Vector3.down * Mathf.Abs(i - lastRowToStack)));
                     grid[lastRowToStack, j] = grid[i, j];
                     grid[i, j] = null;
-                    var tr = grid[lastRowToStack, j].transform;
-                    offsets.Add((tr, tr.position, tr.position + Vector3.down * Mathf.Abs(i - lastRowToStack)));
                 }
             }
             lastRowToStack++;

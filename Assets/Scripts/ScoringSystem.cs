@@ -7,10 +7,22 @@ public class ScoringSystem : MonoBehaviour
     [SerializeField] TextMeshProUGUI levelText;
     int score = 0, level = 1;
     int totalLines = 0;
+    public int AdditionalLines = 0;
+    bool shouldSpawnGreyRows;
 
     void Awake()
     {
         SetTextBoxes();
+    }
+
+    public int GetGreyRowsAmount()
+    {
+        if (shouldSpawnGreyRows)
+        {
+            shouldSpawnGreyRows = false;
+            return AdditionalLines;
+        }
+        return 0;
     }
 
     public void OnClearLines(int linesCleared)
@@ -61,6 +73,11 @@ public class ScoringSystem : MonoBehaviour
         {
             AudioCrossFade.Instance.Next();
         }
+        if ((level-1) % 2 == 0)
+        {
+            AdditionalLines += 1;
+            shouldSpawnGreyRows = true;
+        }
     }
 
     public float GetFallSpeed()
@@ -68,8 +85,7 @@ public class ScoringSystem : MonoBehaviour
         return Mathf.Pow((float)(0.8f-(level - 1)*0.007), level-1);
     }
 
-    public int GetScore()
-    {
-        return score;
-    }
+    public int GetScore() => score;
+
+    public int GetLevel() => level;
 }

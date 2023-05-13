@@ -13,18 +13,11 @@ public class Block : MonoBehaviour
     protected GhostBlock ghost;
 
     public Color blockColor;
-    float maxDelta = 0.4f;
-    float delta = 0.4f;
 
-    float normalFallDelta = 1;
-    float fastFallDelta = 0.017f;
 
-    Coroutine falling;
-
-    public void Init(BlockSpawner spawner, float fallSpeed)
+    public void Init(BlockSpawner spawner)
     {
         this.spawner = spawner;
-        normalFallDelta = fallSpeed;
         blockColor = transform.GetChild(0).GetChild(0).GetComponent<SpriteRenderer>().color;
         ghost = Instantiate(transform.GetChild(0)).gameObject.AddComponent<GhostBlock>();
         ghost.Init(spawner, this);
@@ -41,11 +34,9 @@ public class Block : MonoBehaviour
         }
     }*/
 
-    public void StartFall()
+    public void StartFall(float fallSpeed)
     {
-        if (falling != null)
-            StopCoroutine(falling);
-        falling = StartCoroutine(Fall(normalFallDelta));
+        StartCoroutine(Fall(fallSpeed));
     }
 
     public GameObject GetBlockIcon(Transform parent)
@@ -57,39 +48,25 @@ public class Block : MonoBehaviour
         }
         return tr.gameObject;
     }
-    bool fastFall;
-    public void FastFall()
-    {
-        if (fastFall || falling == null)
-            return;
-        fastFall = true;
-        StopAllCoroutines();
-        falling = null;
-        StartCoroutine(Fall(Mathf.Min(normalFallDelta, fastFallDelta)));
-    }
 
-    public void StopFastFall()
-    {
-        fastFall = false;
-        StopAllCoroutines();
-        falling = StartCoroutine(Fall(normalFallDelta));
-    }
+    float maxDelta = 0.4f;
+    float delta = 0.4f;
 
-    public void ResetMovementValues()
+    public void SmoothMovement(Vector3 dir)
     {
-        maxDelta = 0.4f;
-        delta = 0.4f;
-    }
-    public void UpdateMovement(Vector3 dir)
-    {
-        if (dir.magnitude != 1)
+        if (dir.magnitude == 0)
+        {
+            maxDelta = 0.4f;
+            delta = maxDelta;
             return;
+        }
         delta += Time.deltaTime;
-        if (delta < maxDelta) return;
-        delta = 0;
-        maxDelta = Mathf.Max(0.03f, maxDelta -= 0.3f);
-
-        Move(dir);
+        if (delta >= maxDelta)
+        {
+            Move(dir);
+            delta -= maxDelta;
+            maxDelta = Mathf.Max(0.03f, maxDelta -= 0.25f);
+        }
     }
 
     IEnumerator Fall(float delay)
@@ -99,7 +76,7 @@ public class Block : MonoBehaviour
         {
             delta += Time.deltaTime;
             yield return null;
-            if (delta < delay)
+            if (delta < delay && !spawner.IsFastFall())
                 continue;
             if (!IsValidMove(Vector3.down))
                 break;
