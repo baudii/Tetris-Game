@@ -1,27 +1,53 @@
+using Newtonsoft.Json.Linq;
 using UnityEngine;
 using UnityEngine.Audio;
+using UnityEngine.UI;
 
 public class Options : MonoBehaviour
 {
     [SerializeField] TogglerData[] togglers;
     [SerializeField] AudioMixer mixer;
+    [SerializeField] ToggleSprite controlsButton;
 
     const string musicVolKey = "musicVol";
+    const string musicMuteKey = "musicMute";
     const string sfxVolKey = "SFXVol";
-    
+    const string sfxMuteKey = "SFXMute";
+
     public void Init()
     {
-        var musicVolume = PlayerPrefs.GetFloat(musicVolKey, 1);
-        var sfxVolume = PlayerPrefs.GetFloat(sfxVolKey, 1);
-        var musicMuteState = PlayerPrefs.GetInt(musicVolKey, 1);
-        var sfxMuteState = PlayerPrefs.GetInt(sfxVolKey, 1);
-
+        var musicVolume = PlayerPrefs.GetFloat(musicVolKey, 0.3f);
+        var sfxVolume = PlayerPrefs.GetFloat(sfxVolKey, 0.3f);
+        var musicMuteState = PlayerPrefs.GetInt(musicMuteKey, 1);
+        var sfxMuteState = PlayerPrefs.GetInt(sfxMuteKey, 1);
         SetMusicVolume(musicVolume);
         SetSFXVolume(sfxVolume);
+        
+        foreach (var toggler in togglers)
+        {
+            if (toggler.key == musicVolKey)
+            {
+                var s = toggler.slider.GetComponent<Slider>();
+                s.value = musicVolume;
+            }
+            else
+            {
+                var s = toggler.slider.GetComponent<Slider>();
+                s.value = sfxVolume;
+            }
+        }
         if (musicMuteState == 0)
-            Mute(musicVolKey);
+            Mute(musicVolKey, musicMuteKey);
         if (sfxMuteState == 0)
-            Mute(sfxVolKey);
+            Mute(sfxVolKey, sfxMuteKey);
+
+        controlsButton.SetImage(GameManager.ControlType);
+    }
+
+
+    public void SetImage(string currentControls)
+    {
+        controlsButton.SetImage(currentControls);
     }
 
     public void SetMusicVolume(float value)
@@ -36,51 +62,54 @@ public class Options : MonoBehaviour
         mixer.SetFloat(sfxVolKey, Mathf.Log10(value) * 20);
     }
 
-    public void ToggleMuteMusic() => ToggleMute(musicVolKey);
-    public void ToggleMuteSFX() => ToggleMute(sfxVolKey);
+    public void ToggleMuteMusic() => ToggleMute(musicVolKey, musicMuteKey);
+    public void ToggleMuteSFX() => ToggleMute(sfxVolKey, sfxMuteKey);
 
-    void ToggleMute(string key)
+    void ToggleMute(string volKey, string muteKey)
     {
-        if (key != sfxVolKey && key != musicVolKey)
+        if (volKey != sfxVolKey && volKey != musicVolKey)
             return;
 
-        int state = PlayerPrefs.GetInt(key, 1);
+        int state = PlayerPrefs.GetInt(muteKey, 1);
 
         if (state == 1)
-            Mute(key);
+            Mute(volKey, muteKey);
         else
-            UnMute(key);
+            UnMute(volKey, muteKey);
     }
 
-    void Mute(string key)
+    void Mute(string volKey, string muteKey)
     {
         foreach (var toggler in togglers)
         {
-            if (toggler.key == key)
+            if (toggler.key == volKey)
             {
                 toggler.cross.SetState(true);
                 toggler.slider.SetState(false);
             }
         }
-        mixer.GetFloat(key, out var volume);
-        PlayerPrefs.SetFloat(key, volume);
-        PlayerPrefs.SetInt(key, 0);
-        mixer.SetFloat(key, -80);
+        mixer.GetFloat(volKey, out var volume);
+        PlayerPrefs.SetFloat(volKey, Mathf.Pow(10, volume / 20));
+        PlayerPrefs.SetInt(muteKey, 0);
+        mixer.SetFloat(volKey, -80);
     }
 
-    void UnMute(string key)
+    void UnMute(string volKey, string muteKey)
     {
+        print(volKey);
+        print(muteKey);
         foreach (var toggler in togglers)
         {
-            if (toggler.key == key)
+            if (toggler.key == volKey)
             {
                 toggler.cross.SetState(false);
                 toggler.slider.SetState(true);
             }
         }
-        float volume = PlayerPrefs.GetFloat(key);
-        PlayerPrefs.SetInt(key, 1);
-        mixer.SetFloat(key, volume);
+        float volume = PlayerPrefs.GetFloat(volKey, 0.243f);
+        print(volume);
+        PlayerPrefs.SetInt(muteKey, 1);
+        mixer.SetFloat(volKey, Mathf.Log10(volume) * 20);
     }
 
     [System.Serializable]

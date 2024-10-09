@@ -12,7 +12,7 @@ public class BlockSpawner : MonoBehaviour
     [SerializeField] GameObject plainBlockPrefab;
     [Header("Audio")]
     [SerializeField] AudioSource audioSrc;
-    [SerializeField] AudioClip lineClearSFX, fallSFX;
+    [SerializeField] AudioClip lineClearSFX, fallSFX, rotateSFX;
 
 
     Block nextBlock;
@@ -22,6 +22,7 @@ public class BlockSpawner : MonoBehaviour
     Transform[,] grid = new Transform[20, 10];
     int i = 0;
     GameManager gm;
+    bool keyboardControls;
 
     Vector3 movementDir;
 
@@ -38,7 +39,18 @@ public class BlockSpawner : MonoBehaviour
 
     void Update()
     {
-/*        if (Input.GetKey(KeyCode.LeftArrow))
+#if PLATFORM_WEBGL
+        if (GameManager.ControlType == GameManager.KeyboardControlType)
+        {
+            RecieveInput();
+        }
+#endif
+        currentBlock?.SmoothMovement(movementDir);
+    }
+
+    void RecieveInput()
+    {
+        if (Input.GetKey(KeyCode.LeftArrow))
             RecieveDirInput(-1f);
         if (Input.GetKey(KeyCode.RightArrow))
             RecieveDirInput(1f);
@@ -47,15 +59,13 @@ public class BlockSpawner : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Space)) RecieveRotationInput();
         if (Input.GetKeyDown(KeyCode.DownArrow)) FastFall(true);
-        if (Input.GetKeyUp(KeyCode.DownArrow)) FastFall(false);*/
+        if (Input.GetKeyUp(KeyCode.DownArrow)) FastFall(false);
     }
-
-    void FixedUpdate()
+    public void RecieveRotationInput()
     {
-        currentBlock?.SmoothMovement(movementDir);
+        audioSrc.PlayOneShot(rotateSFX);
+        currentBlock?.Rotate();
     }
-
-    public void RecieveRotationInput() => currentBlock?.Rotate();
 
     public void RecieveDirInput(float dir)
     {

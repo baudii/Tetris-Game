@@ -1,16 +1,79 @@
+using System.Runtime.InteropServices;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 
-[DefaultExecutionOrder(-1)]
 public class GameManager : MonoBehaviour
 {
-    [SerializeField] InGameMenu inGameMenu;
     [SerializeField] Options options;
+    [SerializeField] InGameMenu inGameMenu;
+    [SerializeField] GameObject leftRightControlsTouch;
 
+    const string key = "ControlType";
+    public const string TouchControlType = "Touch";
+    public const string KeyboardControlType = "Keyboard";
+
+    public static string ControlType;
+
+    [DllImport("__Internal")]
+    private static extern bool IsMobile();
+    static bool isMobile;
     void Start()
     {
+        isMobile = SetIsMobile();
+        InitControls();
+        Application.targetFrameRate = 144;
         options.Init();
-        Application.targetFrameRate = 60;
+    }
+
+    bool SetIsMobile()
+    {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        return IsMobile();
+#endif
+        return false;
+    }
+
+    void InitControls()
+    {
+        if (ControlType != TouchControlType || ControlType != KeyboardControlType)
+        {
+            if (isMobile)
+            {
+                ControlType = TouchControlType;
+            }
+            else
+            {
+                ControlType = KeyboardControlType;
+                if (leftRightControlsTouch != null)
+                    leftRightControlsTouch.SetActive(false);
+            }
+        }
+        options.SetImage(ControlType);
+    }
+
+    public void TryToggleControls()
+    {
+        if (isMobile)
+        {
+            options.SetImage(ControlType);
+            return;
+        }
+
+        if (ControlType == TouchControlType)
+        {
+            ControlType = KeyboardControlType;
+            if (leftRightControlsTouch != null)
+                leftRightControlsTouch.SetActive(false);
+        }
+        else
+        {
+            ControlType = TouchControlType;
+
+            if (leftRightControlsTouch != null)
+                leftRightControlsTouch.SetActive(true);
+        }
+        options.SetImage(ControlType);
     }
 
     public void Pause(bool value)
@@ -20,7 +83,6 @@ public class GameManager : MonoBehaviour
         else
             Time.timeScale = 1;
     }
-
     public void Restart()
     {
         Pause(false);

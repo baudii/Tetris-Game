@@ -6,10 +6,12 @@ using System.Collections;
 
 public class UI_Button : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, IPointerEnterHandler, IPointerExitHandler
 {
+    [SerializeField] bool disabled;
     [SerializeField] bool staticButton;
     [SerializeField] UnityEvent OnPress;
     [SerializeField] UnityEvent OnRelease;
     [SerializeField] UnityEvent OnHold;
+    [SerializeField] UnityEvent OnPonterEntered;
     [SerializeField] UnityEvent OnPonterExited;
     [SerializeField] Image mainImage;
     [SerializeField] Color hoverTint;
@@ -19,12 +21,14 @@ public class UI_Button : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, 
     Color initialColor;
     RectTransform rt;
     bool isDisabled;
-    bool canPress;
+    bool pointerWithinButton;
+    bool pressed;
     void Awake()
     {
         rt = GetComponent<RectTransform>();
         initialPos = rt.anchoredPosition;
         initialColor = mainImage.color;
+        isDisabled = disabled;
     }
 
     public void DisableButton(bool value)
@@ -36,7 +40,8 @@ public class UI_Button : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, 
     {
         if (isDisabled)
             return;
-        canPress = true;
+        OnPonterEntered?.Invoke();
+        pointerWithinButton = true;
         mainImage.color *= hoverTint;
     }
 
@@ -44,8 +49,8 @@ public class UI_Button : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, 
     {
         if (isDisabled)
             return;
-        canPress = false;
-
+        pointerWithinButton = false;
+        pressed = false;
         OnPonterExited?.Invoke();
         StopAllCoroutines();
         ResetButtonToInitialState();
@@ -54,10 +59,11 @@ public class UI_Button : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, 
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        if (isDisabled)
+        if (isDisabled || pressed)
             return;
         if (!staticButton)
             rt.anchoredPosition = new Vector2(rt.anchoredPosition.x, 0);
+        pressed = true;
         mainImage.color *= clickTint;
         OnPress?.Invoke();
         StartCoroutine(Hold());
@@ -65,11 +71,13 @@ public class UI_Button : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, 
 
     public void OnPointerUp(PointerEventData eventData)
     {
-        if (isDisabled || !canPress)
+        if (isDisabled || !pointerWithinButton)
             return;
+        pressed = false;
         OnRelease?.Invoke();
         ResetButtonToInitialState();
         StopAllCoroutines();
+        mainImage.color = initialColor;
     }
 
     void ResetButtonToInitialState()
@@ -82,9 +90,13 @@ public class UI_Button : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, 
     IEnumerator Hold()
     {
         yield return null;
+
+        if (OnHold == null)
+            yield break;
+
         while (true)
         {
-            OnHold?.Invoke();
+            OnHold.Invoke();
             yield return null;
         }
     }

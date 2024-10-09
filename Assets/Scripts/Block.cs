@@ -100,6 +100,7 @@ public class Block : MonoBehaviour
             transform.position -= dir;
 
         ghost.UpdatePosition();
+        
     }
 
     protected virtual void PerformRotation()
